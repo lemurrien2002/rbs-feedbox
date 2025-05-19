@@ -11,6 +11,7 @@ import (
 )
 
 func main() {
+	// Формируем строку для подключения к базе данных
 	dsn := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		os.Getenv("DB_HOST"),
@@ -19,7 +20,9 @@ func main() {
 		os.Getenv("DB_PASSWORD"),
 		os.Getenv("DB_NAME"),
 	)
+	// Подключаемся к БД
 	storage := postgres.NewStoragepostgres(dsn)
+	// Инициализируем структуру сервисов (бл)
 	svc := service.New(storage)
 
 	httproutes.Register(svc)

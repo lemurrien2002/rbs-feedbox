@@ -9,14 +9,17 @@ type Service struct {
 	storage *postgres.Storagepostgres
 }
 
+// конструктор сервиса
 func New(storage *postgres.Storagepostgres) *Service {
 	return &Service{storage: storage}
 }
 
+// метод создания формы
 func (s *Service) CreateForm(name, schema string) error {
 	return s.storage.CreateForm(name, schema)
 }
 
+// метод получения всех форм
 func (s *Service) GetForms() ([]models.Form, error) {
 	pgForms, err := s.storage.GetForms()
 	if err != nil {
@@ -36,6 +39,7 @@ func (s *Service) GetForms() ([]models.Form, error) {
 	return result, nil
 }
 
+// метод
 func (s *Service) GetFormByID(id int) (models.Form, error) {
 	f, err := s.storage.GetFormByID(id)
 	if err != nil {
