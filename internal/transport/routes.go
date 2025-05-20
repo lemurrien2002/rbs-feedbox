@@ -38,14 +38,16 @@ func Register(svc *service.Service) {
 	http.HandleFunc("/api/forms", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
 			var req struct {
-				Name   string `json:"name"`
-				Schema string `json:"schema"`
+				Title       string `json:"name"`
+				Schema      string `json:"schema"`
+				Description string `json:"description"`
+				ProjectID   int    `json:"project_id"`
 			}
 			if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 				http.Error(w, "неверный JSON", http.StatusBadRequest)
 				return
 			}
-			err := svc.CreateForm(req.Name, req.Schema)
+			err := svc.CreateForm(req.Title, req.Schema, req.Description, req.ProjectID)
 			if err != nil {
 				http.Error(w, "ошибка создания формы: "+err.Error(), http.StatusInternalServerError)
 				return
@@ -131,7 +133,78 @@ func Register(svc *service.Service) {
 	})
 
 	// тестовая заглушка
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("сервер работает"))
+	})
+
+	http.HandleFunc("/api/projects", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			var req struct {
+				Title       string `json:"title"`
+				Description string `json:"description"`
+			}
+
+			if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+				http.Error(w, "неверный JSON: "+err.Error(), http.StatusBadRequest)
+				return
+			}
+
+			if err := svc.CreateProject(req.Title, req.Description); err != nil {
+				http.Error(w, "ошибка создания проекта: "+err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]string{
+				"status": "Проект успешно создан",
+			})
+			return
+
+		case http.MethodGet:
+			projects, err := svc.GetProjects()
+			if err != nil {
+				http.Error(w, "Ошибка получения проектов: "+err.Error(), http.StatusInternalServerError)
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(projects)
+
+		default:
+			http.Error(w, "Метод не поддерживается", http.StatusMethodNotAllowed)
+		}
+	})
+	// Добавьте этот обработчик в функцию Register()
+	http.HandleFunc("/api/projects/", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			parts := strings.Split(r.URL.Path, "/")
+			if len(parts) < 4 {
+				http.Error(w, "Неверный URL", http.StatusBadRequest)
+				return
+			}
+
+			// Проверяем, если запрос /api/projects/{id}/forms
+			if len(parts) >= 5 && parts[4] == "forms" {
+				projectID, err := strconv.Atoi(parts[3])
+				if err != nil {
+					http.Error(w, "Неверный ID проекта", http.StatusBadRequest)
+					return
+				}
+
+				forms, err := svc.GetFormsByProjectID(projectID)
+				if err != nil {
+					http.Error(w, "Ошибка получения форм: "+err.Error(), http.StatusInternalServerError)
+					return
+				}
+
+				w.Header().Set("Content-Type", "application/json")
+				json.NewEncoder(w).Encode(forms)
+				return
+			}
+
+			// Здесь можно добавить другие обработчики для /api/projects/{id}
+			http.Error(w, "Не найден", http.StatusNotFound)
+		}
 	})
 }

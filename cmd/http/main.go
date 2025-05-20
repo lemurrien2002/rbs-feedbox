@@ -20,7 +20,7 @@ func main() {
 		os.Getenv("DB_PORT"),
 		os.Getenv("DB_NAME"),
 	)
-	storage := postgres.NewStoragepostgres(dsn)
+	storage := postgres.NewStoragePostgres(dsn)
 	svc := service.New(storage)
 
 	httproutes.Register(svc)
