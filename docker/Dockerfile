@@ -2,7 +2,8 @@ FROM golang:1.21 AS builder
 
 WORKDIR /app
 
-COPY go.mod .
+COPY go.mod go.sum ./
+
 
 RUN go mod download
 
@@ -10,6 +11,7 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o /feedbox ./cmd/http/main.go
 
+# Второй этап сборки. Образ alpine
 FROM alpine:latest
 WORKDIR /app
 

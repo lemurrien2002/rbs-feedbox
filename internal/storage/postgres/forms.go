@@ -59,9 +59,11 @@ func (s *Storagepostgres) GetFormByID(id int) (Form, error) {
 
 // SaveResponse — сохраняет новый ответ на форму в таблицу responses
 // Устанавливает статус по умолчанию 'new'
+
+// TODO
 func (s *Storagepostgres) SaveResponse(formID int, data string) error {
 	_, err := s.db.Exec(
-		`INSERT INTO responses (form_id, data, created_at, status) VALUES ($1, $2, now(), 'new')`,
+		`INSERT INTO feedback (form_id, data, created_at, status) VALUES ($1, $2, now(), 'new')`,
 		formID, data,
 	)
 	return err
@@ -71,7 +73,7 @@ func (s *Storagepostgres) SaveResponse(formID int, data string) error {
 // Возвращает слайс структур Response и ошибку
 func (s *Storagepostgres) GetResponsesByFormID(formID int) ([]Response, error) {
 	rows, err := s.db.Query(
-		`SELECT id, form_id, data, created_at, status FROM responses WHERE form_id = $1`,
+		`SELECT id, form_id, data, created_at, status FROM feedback WHERE form_id = $1`,
 		formID,
 	)
 	if err != nil {
@@ -92,6 +94,6 @@ func (s *Storagepostgres) GetResponsesByFormID(formID int) ([]Response, error) {
 
 // UpdateResponseStatus — обновляет статус конкретного ответа по его ID в таблице responses.
 func (s *Storagepostgres) UpdateResponseStatus(id int, status string) error {
-	_, err := s.db.Exec(`UPDATE responses SET status = $1 WHERE id = $2`, status, id)
+	_, err := s.db.Exec(`UPDATE feedback SET status = $1 WHERE id = $2`, status, id)
 	return err
 }
